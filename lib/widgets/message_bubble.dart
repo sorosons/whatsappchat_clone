@@ -276,7 +276,7 @@ class _RingPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
+      ..strokeWidth = 1.9
       ..strokeCap = StrokeCap.round;
     final rect = Rect.fromCircle(
       center: center,
@@ -290,13 +290,14 @@ class _RingPainter extends CustomPainter {
     // Düz yarı: üst-sağ (-90°'den +90°'ye, yani sağ taraf).
     canvas.drawArc(rect, -pi / 2, pi, false, paint);
 
-    // Kesik yarı: sol taraf (+90°'den +270°'ye), kısa çizgilere böl.
-    const int dashes = 5;
+    // Kesik yarı: sol taraf (+90°'den +270°'ye), sık küçük çizgilere böl
+    // (gerçeğindeki gibi noktasal görünüm).
+    const int dashes = 7;
     const double half = pi; // toplam 180°
     const double seg = half / dashes;
     for (int i = 0; i < dashes; i++) {
       final start = pi / 2 + i * seg;
-      canvas.drawArc(rect, start + seg * 0.22, seg * 0.56, false, paint);
+      canvas.drawArc(rect, start + seg * 0.28, seg * 0.44, false, paint);
     }
   }
 

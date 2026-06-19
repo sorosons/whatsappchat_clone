@@ -206,12 +206,12 @@ class _ViewOnceContent extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 1),
             child: _ViewOnceRing(theme: theme),
           ),
-          const SizedBox(width: 9),
+          const SizedBox(width: 10),
           Text(
             _label,
             style: TextStyle(
               color: theme.viewOnceText,
-              fontSize: 16.5,
+              fontSize: 17,
               height: 1.1,
             ),
           ),
@@ -226,7 +226,8 @@ class _ViewOnceContent extends StatelessWidget {
   }
 }
 
-/// iOS view-once: ince yeşil kesik halka + ortada ince "1".
+/// iOS view-once: yeşil kesik halka + ortada net "1".
+/// Gerçek WhatsApp'taki gibi belirgin: ~9 uzun segment, kalın çizgi.
 class _ViewOnceRing extends StatelessWidget {
   final ChatTheme theme;
   const _ViewOnceRing({required this.theme});
@@ -234,21 +235,18 @@ class _ViewOnceRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 20,
-      height: 20,
+      width: 23,
+      height: 23,
       child: CustomPaint(
         painter: _RingPainter(theme.viewOnceRing),
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 0.5),
-            child: Text(
-              '1',
-              style: TextStyle(
-                color: theme.viewOnceRing,
-                fontSize: 11.5,
-                height: 1,
-                fontWeight: FontWeight.w400,
-              ),
+          child: Text(
+            '1',
+            style: TextStyle(
+              color: theme.viewOnceRing,
+              fontSize: 13,
+              height: 1,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
@@ -266,17 +264,18 @@ class _RingPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5
+      ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round;
     final rect = Rect.fromCircle(
       center: Offset(size.width / 2, size.height / 2),
-      radius: size.width / 2 - 1.4,
+      radius: size.width / 2 - 1.6,
     );
-    // 12 eşit kısa çizgi — gerçek WhatsApp view-once halkası gibi.
-    const dashCount = 12;
+    // 9 belirgin segment — gerçek WhatsApp view-once halkasına benzer.
+    const dashCount = 9;
     const sweep = 6.2831853 / dashCount;
     for (int i = 0; i < dashCount; i++) {
-      canvas.drawArc(rect, i * sweep + sweep * 0.22, sweep * 0.5, false, paint);
+      canvas.drawArc(
+          rect, i * sweep + sweep * 0.18, sweep * 0.64, false, paint);
     }
   }
 

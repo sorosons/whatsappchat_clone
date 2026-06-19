@@ -270,12 +270,21 @@ class _RingPainter extends CustomPainter {
       center: Offset(size.width / 2, size.height / 2),
       radius: size.width / 2 - 1.6,
     );
-    // 9 belirgin segment — gerçek WhatsApp view-once halkasına benzer.
-    const dashCount = 9;
-    const sweep = 6.2831853 / dashCount;
-    for (int i = 0; i < dashCount; i++) {
-      canvas.drawArc(
-          rect, i * sweep + sweep * 0.18, sweep * 0.64, false, paint);
+
+    const double pi = 3.1415926535;
+
+    // Gerçek WhatsApp view-once halkası: bir yarısı KESİNTİSİZ (düz) çizgi,
+    // diğer yarısı KESİK (dashed) çizgi.
+    // Düz yarı: üst-sağ (-90°'den +90°'ye, yani sağ taraf).
+    canvas.drawArc(rect, -pi / 2, pi, false, paint);
+
+    // Kesik yarı: sol taraf (+90°'den +270°'ye), kısa çizgilere böl.
+    const int dashes = 5;
+    const double half = pi; // toplam 180°
+    const double seg = half / dashes;
+    for (int i = 0; i < dashes; i++) {
+      final start = pi / 2 + i * seg;
+      canvas.drawArc(rect, start + seg * 0.22, seg * 0.56, false, paint);
     }
   }
 

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models.dart';
 import '../theme.dart';
@@ -273,33 +274,48 @@ class _RingPainter extends CustomPainter {
           : Colors.black.withValues(alpha: 0.06);
     canvas.drawCircle(center, size.width / 2 - 2.8, fillPaint);
 
-    final paint = Paint()
+    const double pi = 3.1415926535;
+    final radius = size.width / 2 - 2.0;
+
+    final stroke = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.9
+      ..strokeWidth = 2.2
       ..strokeCap = StrokeCap.round;
-    final rect = Rect.fromCircle(
-      center: center,
-      radius: size.width / 2 - 1.6,
-    );
 
-    const double pi = 3.1415926535;
+    final rect = Rect.fromCircle(center: center, radius: radius);
 
-    // Gerçek WhatsApp view-once halkası: bir yarısı KESİNTİSİZ (düz) çizgi,
-    // diğer yarısı KESİK (dashed) çizgi.
-    // Düz yarı: üst-sağ (-90°'den +90°'ye, yani sağ taraf).
-    canvas.drawArc(rect, -pi / 2, pi, false, paint);
+    // Gerçek WhatsApp view-once halkası:
+    // SOL yarı = DÜZ kesintisiz çizgi, üst ve altta küçük açıklık bırakır.
+    // SAĞ yarı = ayrı ayrı yuvarlak NOKTALAR.
 
-    // Kesik yarı: sol taraf (+90°'den +270°'ye), sık küçük çizgilere böl
-    // (gerçeğindeki gibi noktasal görünüm).
-    const int dashes = 7;
-    const double half = pi; // toplam 180°
-    const double seg = half / dashes;
-    for (int i = 0; i < dashes; i++) {
-      final start = pi / 2 + i * seg;
-      canvas.drawArc(rect, start + seg * 0.28, seg * 0.44, false, paint);
+    // Sol düz yarı: yaklaşık 110°'den 250°'ye (alt-sol-üst), uçlarda boşluk.
+    const double gap = 0.30; // uçlardaki açıklık (rad)
+    canvas.drawArc(rect, pi / 2 + gap, pi - 2 * gap, false, stroke);
+
+    // Sağ yarı: yuvarlak noktalar (-90°+gap'tan +90°-gap'a).
+    final dotPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    const int dots = 8;
+    final double startA = -pi / 2 + gap;
+    final double endA = pi / 2 - gap;
+    final double stepA = (endA - startA) / (dots - 1);
+    for (int i = 0; i < dots; i++) {
+      final a = startA + i * stepA;
+      final dx = center.dx + radius * 0.999 * _cos(a);
+      final dy = center.dy + radius * 0.999 * _sin(a);
+      canvas.drawCircle(Offset(dx, dy), 1.35, dotPaint);
     }
   }
+
+  static double _cos(double a) {
+    // Basit, sabit kütüphane fonksiyonu yerine dart:math kullanılabilir;
+    // burada netlik için math.cos/sin çağrılıyor.
+    return math.cos(a);
+  }
+
+  static double _sin(double a) => math.sin(a);
 
   @override
   bool shouldRepaint(covariant _RingPainter old) =>

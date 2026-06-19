@@ -238,7 +238,7 @@ class _ViewOnceRing extends StatelessWidget {
       width: 26,
       height: 26,
       child: CustomPaint(
-        painter: _RingPainter(theme.viewOnceRing),
+        painter: _RingPainter(theme.viewOnceRing, theme.isDark),
         child: Center(
           child: Text(
             '1',
@@ -257,17 +257,29 @@ class _ViewOnceRing extends StatelessWidget {
 
 class _RingPainter extends CustomPainter {
   final Color color;
-  _RingPainter(this.color);
+  final bool dark;
+  _RingPainter(this.color, this.dark);
 
   @override
   void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+
+    // İç dolgu: gerçek WhatsApp'taki gibi halkanın içinde hafif kapalı
+    // (gri) bir disk var — "1" rakamının arkasında yumuşak bir zemin.
+    final fillPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = dark
+          ? Colors.white.withValues(alpha: 0.10)
+          : Colors.black.withValues(alpha: 0.06);
+    canvas.drawCircle(center, size.width / 2 - 2.8, fillPaint);
+
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round;
     final rect = Rect.fromCircle(
-      center: Offset(size.width / 2, size.height / 2),
+      center: center,
       radius: size.width / 2 - 1.6,
     );
 
@@ -289,7 +301,8 @@ class _RingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _RingPainter old) => old.color != color;
+  bool shouldRepaint(covariant _RingPainter old) =>
+      old.color != color || old.dark != dark;
 }
 
 /// Saat + "Düzenlendi" + tikler.

@@ -15,8 +15,15 @@ class DoodleBackground extends StatelessWidget {
       color: theme.chatBg,
       child: Stack(
         children: [
+          // Arka plan deseni tamamen dekoratif: semantics'ten çıkar ve
+          // ayrı bir repaint katmanına al (performans + debug semantics
+          // hatalarını önler).
           Positioned.fill(
-            child: _DoodleTiles(color: theme.doodle, dark: theme.isDark),
+            child: ExcludeSemantics(
+              child: RepaintBoundary(
+                child: _DoodleTiles(color: theme.doodle, dark: theme.isDark),
+              ),
+            ),
           ),
           child,
         ],

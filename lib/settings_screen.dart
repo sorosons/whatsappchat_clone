@@ -378,13 +378,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ? null
                       : () {
                           store.startSchedule();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                  'Başladı! Sohbete dön; mesajlar sırayla düşecek.'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
                           Navigator.of(context).pop();
                         },
                   icon: const Icon(Icons.play_arrow),

@@ -143,10 +143,15 @@ class _MediaContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final media = SmartImage(
-      path: message.mediaAsset,
-      fit: BoxFit.contain,
-      placeholder: _placeholder,
+    // Gerçek WhatsApp gibi: medya genişliği TAM kaplar ve dikeyde mümkün
+    // olduğunca büyür. Fotoğraf kırpılmadan (contain) ama büyük gösterilir;
+    // video ekranı doldurur (cover).
+    final media = SizedBox.expand(
+      child: SmartImage(
+        path: message.mediaAsset,
+        fit: isVideo ? BoxFit.cover : BoxFit.contain,
+        placeholder: _placeholder,
+      ),
     );
 
     if (!isVideo) return media;
@@ -169,28 +174,26 @@ class _MediaContent extends StatelessWidget {
   }
 
   Widget _placeholder(BuildContext context) {
+    // Placeholder da tüm alanı kaplasın (gerçek medya gelince yerini alır).
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 8),
+      height: double.infinity,
       color: const Color(0xFF1E1E1E),
-      child: const AspectRatio(
-        aspectRatio: 0.62,
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.image_outlined, color: Colors.white38, size: 56),
-              SizedBox(height: 12),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  'Panelden foto/video seç',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white38, fontSize: 13),
-                ),
+      child: const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.image_outlined, color: Colors.white38, size: 56),
+            SizedBox(height: 12),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'Panelden foto/video seç',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white38, fontSize: 13),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -197,7 +197,7 @@ class _ViewOnceContent extends StatelessWidget {
   Widget build(BuildContext context) {
     // iOS WhatsApp: [halka] [etiket]   ...   saat (sağ altta).
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 8, 9, 6),
+      padding: const EdgeInsets.fromLTRB(13, 11, 11, 9),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -206,18 +206,18 @@ class _ViewOnceContent extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 1),
             child: _ViewOnceRing(theme: theme),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Text(
             _label,
             style: TextStyle(
               color: theme.viewOnceText,
-              fontSize: 17,
+              fontSize: 18.5,
               height: 1.1,
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Padding(
-            padding: const EdgeInsets.only(bottom: 1),
+            padding: const EdgeInsets.only(bottom: 1.5),
             child: _MetaRow(message: message, theme: theme),
           ),
         ],
@@ -235,8 +235,8 @@ class _ViewOnceRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 23,
-      height: 23,
+      width: 26,
+      height: 26,
       child: CustomPaint(
         painter: _RingPainter(theme.viewOnceRing),
         child: Center(
@@ -244,7 +244,7 @@ class _ViewOnceRing extends StatelessWidget {
             '1',
             style: TextStyle(
               color: theme.viewOnceRing,
-              fontSize: 13,
+              fontSize: 14.5,
               height: 1,
               fontWeight: FontWeight.w600,
             ),

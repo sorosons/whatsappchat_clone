@@ -90,21 +90,21 @@ class _Bubble extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: radius,
-          // Gerçek WhatsApp'taki gibi en dışta ince radiuslu çerçeve.
+          // En dışta ince radiuslu çerçeve (belirgin).
           border: theme.isDark
               ? null
               : Border.all(
                   color: isMe
-                      ? const Color(0xFFC7EFC0) // giden: hafif yeşil kenar
-                      : const Color(0xFFE6E6E1), // gelen: ince gri kenar
-                  width: 0.7,
+                      ? const Color(0xFFB7E6AE) // giden: yeşil kenar
+                      : const Color(0xFFDADAD3), // gelen: gri kenar
+                  width: 1.0,
                 ),
           boxShadow: theme.isDark
               ? null
               : const [
                   BoxShadow(
-                    color: Color(0x0F000000),
-                    blurRadius: 0.6,
+                    color: Color(0x14000000),
+                    blurRadius: 1.0,
                     offset: Offset(0, 0.5),
                   ),
                 ],

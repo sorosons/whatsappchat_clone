@@ -92,7 +92,7 @@ class ChatTheme {
     appBarIcon: Color(0xFF1C1C1E),
     chatBg: Color(0xFFEDE7DD),
     doodle: Color(0xFFD7CDBF),
-    incomingBubble: Color(0xFFFFFFFF),
+    incomingBubble: Color(0xFFFBFBF9),
     outgoingBubble: Color(0xFFD9FDD3),
     bubbleText: Color(0xFF111111),
     timeStamp: Color(0xFF8A8F93),

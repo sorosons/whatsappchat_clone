@@ -90,13 +90,22 @@ class _Bubble extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: radius,
+          // Gerçek WhatsApp'taki gibi en dışta ince radiuslu çerçeve.
+          border: theme.isDark
+              ? null
+              : Border.all(
+                  color: isMe
+                      ? const Color(0xFFC7EFC0) // giden: hafif yeşil kenar
+                      : const Color(0xFFE6E6E1), // gelen: ince gri kenar
+                  width: 0.7,
+                ),
           boxShadow: theme.isDark
               ? null
               : const [
                   BoxShadow(
-                    color: Color(0x12000000),
-                    blurRadius: 0.8,
-                    offset: Offset(0, 0.6),
+                    color: Color(0x0F000000),
+                    blurRadius: 0.6,
+                    offset: Offset(0, 0.5),
                   ),
                 ],
         ),
@@ -149,27 +158,41 @@ class _DeletedContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Gerçek WhatsApp "This message was deleted": ince ban ikonu + italik
+    // soluk gri yazı, saat hemen yanında küçük.
+    final mutedColor = theme.isDark
+        ? const Color(0xFF8696A0)
+        : const Color(0xFF8C9296);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 7, 10, 6),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 7),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Icon(Icons.block, size: 16, color: theme.timeStamp),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 1.5),
+            child: Icon(Icons.do_not_disturb_alt,
+                size: 15, color: mutedColor),
+          ),
           const SizedBox(width: 6),
           Flexible(
             child: Text(
-              message.text.isEmpty ? 'Bu mesaj silindi.' : message.text,
+              message.text.isEmpty ? 'Bu mesaj silindi' : message.text,
               style: TextStyle(
-                color: theme.timeStamp,
+                color: mutedColor,
                 fontStyle: FontStyle.italic,
-                fontSize: 15.5,
+                fontSize: 14.5,
+                height: 1.2,
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          Text(
-            message.time,
-            style: TextStyle(color: theme.timeStamp, fontSize: 11),
+          const SizedBox(width: 7),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 1),
+            child: Text(
+              message.time,
+              style: TextStyle(color: mutedColor, fontSize: 10.5),
+            ),
           ),
         ],
       ),

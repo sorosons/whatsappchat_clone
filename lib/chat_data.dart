@@ -51,4 +51,11 @@ final List<ChatMessage> kMessages = [
     mediaLabel: 'Sesli mesaj',
     mediaAsset: kPhotoAsset,
   ),
+  const ChatMessage(
+    id: '6',
+    type: ItemType.deleted,
+    isMe: false,
+    time: '13:47',
+    text: 'Bu mesaj silindi',
+  ),
 ];

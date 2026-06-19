@@ -108,6 +108,27 @@ class ChatMessage {
   }
 }
 
+/// Zamanlanmış mesaj: "başlat"tan kaç saniye sonra sohbete düşeceği.
+class ScheduledMessage {
+  final String id;
+  final ChatMessage message;
+  final int delaySeconds;
+
+  const ScheduledMessage({
+    required this.id,
+    required this.message,
+    required this.delaySeconds,
+  });
+
+  ScheduledMessage copyWith({ChatMessage? message, int? delaySeconds}) {
+    return ScheduledMessage(
+      id: id,
+      message: message ?? this.message,
+      delaySeconds: delaySeconds ?? this.delaySeconds,
+    );
+  }
+}
+
 /// Sohbet başlığı bilgileri.
 class ChatPeer {
   final String name;

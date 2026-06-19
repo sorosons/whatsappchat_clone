@@ -299,6 +299,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                 },
               ),
+
+              const Divider(height: 1),
+              _scheduledSection(),
             ],
           ),
           floatingActionButton: FloatingActionButton.extended(
@@ -309,6 +312,171 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _scheduledSection() {
+    final list = store.scheduled;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _section('Zamanlanmış mesajlar (${list.length})'),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: Text(
+            '"Başlat"a basınca, her mesaj kendi süresi dolunca sohbete '
+            'kendiliğinden düşer. Gelen metin mesajından önce "yazıyor..." '
+            'görünür.',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+        ),
+        ...list.asMap().entries.map((e) {
+          final i = e.key;
+          final s = e.value;
+          return Dismissible(
+            key: ValueKey('sched_${s.id}'),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20),
+              child: const Icon(Icons.delete, color: Colors.white),
+            ),
+            onDismissed: (_) => store.removeScheduledAt(i),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: const Color(0xFF008069),
+                radius: 18,
+                child: Text('${s.delaySeconds}s',
+                    style: const TextStyle(
+                        color: Colors.white, fontSize: 12)),
+              ),
+              title: Text(_titleFor(s.message),
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
+              subtitle: Text(
+                  '${s.message.isMe ? "Giden" : "Gelen"} • ${s.delaySeconds} sn sonra'),
+              trailing: const Icon(Icons.edit, size: 20),
+              onTap: () => _editScheduled(i),
+            ),
+          );
+        }),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _addScheduled,
+                  icon: const Icon(Icons.add_alarm),
+                  label: const Text('Zamanlı ekle'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: list.isEmpty
+                      ? null
+                      : () {
+                          store.startSchedule();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Başladı! Sohbete dön; mesajlar sırayla düşecek.'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                          Navigator.of(context).pop();
+                        },
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text('Başlat'),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (list.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: TextButton.icon(
+              onPressed: () {
+                store.cancelSchedule();
+                store.clearScheduled();
+              },
+              icon: const Icon(Icons.clear_all, size: 18),
+              label: const Text('Tümünü temizle / durdur'),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _addScheduled() async {
+    final created = await Navigator.of(context).push<ChatMessage>(
+      MaterialPageRoute(
+        builder: (_) => MessageEditorScreen(
+          picker: _picker,
+          initial: ChatMessage(id: 'tmp', time: _peerNowHint()),
+        ),
+      ),
+    );
+    if (created == null) return;
+    final delay = await _askDelay(5);
+    if (delay == null) return;
+    store.addScheduled(ScheduledMessage(
+      id: store.nextScheduledId(),
+      message: created.copyWith(),
+      delaySeconds: delay,
+    ));
+  }
+
+  Future<void> _editScheduled(int index) async {
+    final s = store.scheduled[index];
+    final edited = await Navigator.of(context).push<ChatMessage>(
+      MaterialPageRoute(
+        builder: (_) => MessageEditorScreen(
+          picker: _picker,
+          initial: s.message,
+        ),
+      ),
+    );
+    if (edited == null) return;
+    final delay = await _askDelay(s.delaySeconds);
+    if (delay == null) return;
+    store.updateScheduled(
+        index, s.copyWith(message: edited, delaySeconds: delay));
+  }
+
+  String _peerNowHint() => store.statusBar.clock;
+
+  /// Gecikme (saniye) sorar.
+  Future<int?> _askDelay(int initial) async {
+    final ctrl = TextEditingController(text: '$initial');
+    return showDialog<int>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Kaç saniye sonra gelsin?'),
+        content: TextField(
+          controller: ctrl,
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          decoration: const InputDecoration(
+            suffixText: 'saniye',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('İptal')),
+          FilledButton(
+            onPressed: () {
+              final v = int.tryParse(ctrl.text.trim());
+              Navigator.pop(ctx, (v == null || v < 1) ? 1 : v);
+            },
+            child: const Text('Tamam'),
+          ),
+        ],
+      ),
     );
   }
 

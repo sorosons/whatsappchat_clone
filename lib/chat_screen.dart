@@ -23,14 +23,32 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scroll = ScrollController();
   ChatStore get store => widget.store;
 
+  int _lastCount = 0;
+
   @override
   void initState() {
     super.initState();
+    _lastCount = store.messages.length;
     store.addListener(_onStoreChanged);
   }
 
   void _onStoreChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
+    // Yeni mesaj geldiyse (ör. zamanlanmış mesaj düştü) en alta kay.
+    final count = store.messages.length;
+    if (count > _lastCount) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scroll.hasClients) {
+          _scroll.animateTo(
+            _scroll.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
+    _lastCount = count;
   }
 
   @override
@@ -89,16 +107,21 @@ class _ChatScreenState extends State<ChatScreen> {
             bg: statusBg,
           ),
           // Üst bar — platforma göre iOS veya Android.
+          // "yazıyor..." durumunda alt başlık değişir.
           if (isAndroid)
             AndroidAppBar(
-              peer: store.peer,
+              peer: store.isTyping
+                  ? store.peer.copyWith(status: 'yazıyor...')
+                  : store.peer,
               theme: t,
               onMenu: () => _openSettings(context),
               onBack: () => Navigator.of(context).maybePop(),
             )
           else
             _IosAppBar(
-              peer: store.peer,
+              peer: store.isTyping
+                  ? store.peer.copyWith(status: 'yazıyor...')
+                  : store.peer,
               theme: t,
               onMenu: () => _openSettings(context),
             ),

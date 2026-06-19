@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,11 +15,18 @@ class ChatStore extends ChangeNotifier {
   UiPlatform _platform = UiPlatform.ios;
   StatusBarConfig _statusBar = const StatusBarConfig();
 
+  // Zamanlanmış mesajlar (kalıcı). Aktif timer'lar ve "yazıyor..." geçici.
+  List<ScheduledMessage> _scheduled = [];
+  final List<Timer> _activeTimers = [];
+  bool _isTyping = false;
+
   ChatPeer get peer => _peer;
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isDark => _dark;
   UiPlatform get platform => _platform;
   StatusBarConfig get statusBar => _statusBar;
+  List<ScheduledMessage> get scheduled => List.unmodifiable(_scheduled);
+  bool get isTyping => _isTyping;
 
   // ---- Yükleme / kaydetme ----
 
@@ -36,6 +44,9 @@ class ChatStore extends ChangeNotifier {
       _messages = (map['messages'] as List)
           .map((e) => _msgFromJson(e as Map<String, dynamic>))
           .toList();
+      _scheduled = ((map['scheduled'] as List?) ?? [])
+          .map((e) => _schedFromJson(e as Map<String, dynamic>))
+          .toList();
       notifyListeners();
     } catch (_) {
       // Bozuk veri => varsayılan.
@@ -50,6 +61,7 @@ class ChatStore extends ChangeNotifier {
       'statusBar': _statusToJson(_statusBar),
       'peer': _peerToJson(_peer),
       'messages': _messages.map(_msgToJson).toList(),
+      'scheduled': _scheduled.map(_schedToJson).toList(),
     };
     await prefs.setString(_kKey, jsonEncode(map));
   }
@@ -73,6 +85,105 @@ class ChatStore extends ChangeNotifier {
     notifyListeners();
     _persist();
   }
+
+  // ---- Zamanlanmış mesajlar ----
+
+  void addScheduled(ScheduledMessage s) {
+    _scheduled.add(s);
+    notifyListeners();
+    _persist();
+  }
+
+  void updateScheduled(int index, ScheduledMessage s) {
+    _scheduled[index] = s;
+    notifyListeners();
+    _persist();
+  }
+
+  void removeScheduledAt(int index) {
+    _scheduled.removeAt(index);
+    notifyListeners();
+    _persist();
+  }
+
+  void clearScheduled() {
+    _scheduled.clear();
+    notifyListeners();
+    _persist();
+  }
+
+  String nextScheduledId() {
+    var max = 0;
+    for (final s in _scheduled) {
+      final n = int.tryParse(s.id) ?? 0;
+      if (n > max) max = n;
+    }
+    return '${max + 1}';
+  }
+
+  /// Tüm zamanlanmış mesajlar için geri sayımı başlatır.
+  /// Metin mesajlarda, düşmeden ~2.2 sn önce "yazıyor..." gösterilir.
+  void startSchedule() {
+    cancelSchedule();
+    for (final s in _scheduled) {
+      final isText = s.message.type == ItemType.text && !s.message.isMe;
+      final delayMs = s.delaySeconds * 1000;
+
+      // Gelen metin mesajıysa, düşmeden önce "yazıyor..." göster.
+      if (isText) {
+        final typingAt = delayMs - 2200;
+        if (typingAt > 0) {
+          _activeTimers.add(Timer(Duration(milliseconds: typingAt), () {
+            _setTyping(true);
+          }));
+        } else {
+          _setTyping(true);
+        }
+      }
+
+      _activeTimers.add(Timer(Duration(milliseconds: delayMs), () {
+        if (isText) _setTyping(false);
+        _messages.add(s.message);
+        notifyListeners();
+        _persist();
+      }));
+    }
+  }
+
+  void cancelSchedule() {
+    for (final t in _activeTimers) {
+      t.cancel();
+    }
+    _activeTimers.clear();
+    if (_isTyping) {
+      _isTyping = false;
+      notifyListeners();
+    }
+  }
+
+  void _setTyping(bool v) {
+    if (_isTyping == v) return;
+    _isTyping = v;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    cancelSchedule();
+    super.dispose();
+  }
+
+  Map<String, dynamic> _schedToJson(ScheduledMessage s) => {
+        'id': s.id,
+        'delay': s.delaySeconds,
+        'message': _msgToJson(s.message),
+      };
+
+  ScheduledMessage _schedFromJson(Map<String, dynamic> m) => ScheduledMessage(
+        id: m['id'] as String,
+        delaySeconds: m['delay'] as int? ?? 5,
+        message: _msgFromJson(m['message'] as Map<String, dynamic>),
+      );
 
   Map<String, dynamic> _statusToJson(StatusBarConfig s) => {
         'clock': s.clock,

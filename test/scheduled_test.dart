@@ -8,39 +8,35 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   SharedPreferences.setMockInitialValues({});
 
-  test('zamanlanmış mesaj süre dolunca eklenir + metinde yazıyor efekti', () {
+  test('başlatınca kuyruk boşalır ve mesajlar tek seferlik düşer', () {
     fakeAsync((async) {
       final store = ChatStore();
       final before = store.messages.length;
 
       store.addScheduled(ScheduledMessage(
-        id: '1',
-        delaySeconds: 5,
+        id: '1', delaySeconds: 3,
         message: const ChatMessage(
-            id: 's1', type: ItemType.text, text: 'merhaba', isMe: false),
-      ));
+            id: 's1', type: ItemType.text, text: 'merhaba', isMe: false)));
       store.addScheduled(ScheduledMessage(
-        id: '2',
-        delaySeconds: 8,
+        id: '2', delaySeconds: 5,
         message: const ChatMessage(
             id: 's2', type: ItemType.viewOnce, mediaKind: MediaKind.photo,
-            isMe: false, mediaLabel: 'Fotoğraf'),
-      ));
+            isMe: false, mediaLabel: 'Fotoğraf')));
+
+      expect(store.scheduled.length, 2);
 
       store.startSchedule();
+      // Başlatır başlatmaz kuyruk boşalmalı
+      expect(store.scheduled.length, 0);
 
-      async.elapse(const Duration(milliseconds: 3500));
-      expect(store.isTyping, true);
-      expect(store.messages.length, before);
-
-      async.elapse(const Duration(milliseconds: 1600));
-      expect(store.isTyping, false);
-      expect(store.messages.length, before + 1);
-      expect(store.messages.last.text, 'merhaba');
-
-      async.elapse(const Duration(seconds: 3));
+      async.elapse(const Duration(seconds: 6));
+      // İki mesaj düştü
       expect(store.messages.length, before + 2);
-      expect(store.messages.last.type, ItemType.viewOnce);
+
+      // Tekrar "başlat": kuyruk boş, yeni mesaj DÜŞMEMELİ
+      store.startSchedule();
+      async.elapse(const Duration(seconds: 6));
+      expect(store.messages.length, before + 2);
 
       store.cancelSchedule();
       async.flushTimers();

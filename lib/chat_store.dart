@@ -44,9 +44,7 @@ class ChatStore extends ChangeNotifier {
       _messages = (map['messages'] as List)
           .map((e) => _msgFromJson(e as Map<String, dynamic>))
           .toList();
-      _scheduled = ((map['scheduled'] as List?) ?? [])
-          .map((e) => _schedFromJson(e as Map<String, dynamic>))
-          .toList();
+      // Zamanlanmış mesajlar KALICI DEĞİL — her açılışta kuyruk boş başlar.
       notifyListeners();
     } catch (_) {
       // Bozuk veri => varsayılan.
@@ -61,7 +59,7 @@ class ChatStore extends ChangeNotifier {
       'statusBar': _statusToJson(_statusBar),
       'peer': _peerToJson(_peer),
       'messages': _messages.map(_msgToJson).toList(),
-      'scheduled': _scheduled.map(_schedToJson).toList(),
+      // 'scheduled' kasıtlı olarak kaydedilmiyor (oturum içi, tek seferlik).
     };
     await prefs.setString(_kKey, jsonEncode(map));
   }
@@ -123,9 +121,18 @@ class ChatStore extends ChangeNotifier {
 
   /// Tüm zamanlanmış mesajlar için geri sayımı başlatır.
   /// Metin mesajlarda, düşmeden ~2.2 sn önce "yazıyor..." gösterilir.
+  ///
+  /// Başlatılan mesajlar TEK SEFERLİKTİR: kuyruk hemen temizlenir ve kalıcı
+  /// kayıttan silinir; böylece bir dahaki sefere eskiler tekrar düşmez.
   void startSchedule() {
     cancelSchedule();
-    for (final s in _scheduled) {
+    final batch = List.of(_scheduled);
+    // Kuyruğu hemen boşalt (kalıcı kayıttan da silinir).
+    _scheduled.clear();
+    notifyListeners();
+    _persist();
+
+    for (final s in batch) {
       final isText = s.message.type == ItemType.text && !s.message.isMe;
       final delayMs = s.delaySeconds * 1000;
 
@@ -172,18 +179,6 @@ class ChatStore extends ChangeNotifier {
     cancelSchedule();
     super.dispose();
   }
-
-  Map<String, dynamic> _schedToJson(ScheduledMessage s) => {
-        'id': s.id,
-        'delay': s.delaySeconds,
-        'message': _msgToJson(s.message),
-      };
-
-  ScheduledMessage _schedFromJson(Map<String, dynamic> m) => ScheduledMessage(
-        id: m['id'] as String,
-        delaySeconds: m['delay'] as int? ?? 5,
-        message: _msgFromJson(m['message'] as Map<String, dynamic>),
-      );
 
   Map<String, dynamic> _statusToJson(StatusBarConfig s) => {
         'clock': s.clock,

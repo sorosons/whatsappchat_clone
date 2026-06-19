@@ -38,6 +38,27 @@ class StatusBarConfig {
   }
 }
 
+/// Tam ekran medya açılış ekranındaki düzenlenebilir metinler (dil için).
+class ViewerTexts {
+  final String savedToast; // "Galeriye kaydedildi"
+  final String reply; // "Yanıtla"
+  final String time; // "az önce"
+
+  const ViewerTexts({
+    this.savedToast = 'Galeriye kaydedildi',
+    this.reply = 'Yanıtla',
+    this.time = 'az önce',
+  });
+
+  ViewerTexts copyWith({String? savedToast, String? reply, String? time}) {
+    return ViewerTexts(
+      savedToast: savedToast ?? this.savedToast,
+      reply: reply ?? this.reply,
+      time: time ?? this.time,
+    );
+  }
+}
+
 /// Bir öğenin türü. Normal mesajlar dışında tarih ayracı, sistem
 /// mesajı (ör. "Bu mesaj silindi") ve okunmamış ayracı da listede yer alır.
 enum ItemType { text, viewOnce, dateSeparator, deleted, unreadSeparator }

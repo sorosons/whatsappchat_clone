@@ -21,6 +21,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _statusCtrl;
   late final TextEditingController _badgeCtrl;
   late final TextEditingController _clockCtrl;
+  late final TextEditingController _savedCtrl;
+  late final TextEditingController _replyCtrl;
+  late final TextEditingController _vtimeCtrl;
 
   @override
   void initState() {
@@ -29,6 +32,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _statusCtrl = TextEditingController(text: store.peer.status);
     _badgeCtrl = TextEditingController(text: store.peer.backBadge);
     _clockCtrl = TextEditingController(text: store.statusBar.clock);
+    _savedCtrl = TextEditingController(text: store.viewerTexts.savedToast);
+    _replyCtrl = TextEditingController(text: store.viewerTexts.reply);
+    _vtimeCtrl = TextEditingController(text: store.viewerTexts.time);
   }
 
   @override
@@ -37,6 +43,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _statusCtrl.dispose();
     _badgeCtrl.dispose();
     _clockCtrl.dispose();
+    _savedCtrl.dispose();
+    _replyCtrl.dispose();
+    _vtimeCtrl.dispose();
     super.dispose();
   }
 
@@ -226,6 +235,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               _section('Üst çubuk (saat / wifi / şarj)'),
               _statusBarEditors(),
+              const Divider(height: 1),
+
+              _section('Tam ekran açılış metinleri (dil)'),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Text(
+                  'Tek seferlik medya açılınca görünen yazılar. İstediğin dile çevir.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ),
+              _viewerField(
+                'Kaydedildi yazısı (ör. Galeriye kaydedildi / Ya guardado)',
+                _savedCtrl,
+                (v) => store.updateViewerTexts(
+                    store.viewerTexts.copyWith(savedToast: v)),
+              ),
+              _viewerField(
+                'Yanıtla butonu (ör. Yanıtla / Responder / Reply)',
+                _replyCtrl,
+                (v) => store.updateViewerTexts(
+                    store.viewerTexts.copyWith(reply: v)),
+              ),
+              _viewerField(
+                'Üst zaman yazısı (ör. az önce / hace 5 minutos)',
+                _vtimeCtrl,
+                (v) => store.updateViewerTexts(
+                    store.viewerTexts.copyWith(time: v)),
+              ),
               const Divider(height: 1),
 
               _section('Kişi'),
@@ -543,6 +580,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
         child: TextField(
           controller: c,
+          decoration: InputDecoration(
+            labelText: label,
+            border: const OutlineInputBorder(),
+            isDense: true,
+          ),
+        ),
+      );
+
+  /// Yazdıkça anlık kaydeden alan (Tam ekran metinleri için).
+  Widget _viewerField(
+          String label, TextEditingController c, ValueChanged<String> onChanged) =>
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+        child: TextField(
+          controller: c,
+          onChanged: onChanged,
           decoration: InputDecoration(
             labelText: label,
             border: const OutlineInputBorder(),

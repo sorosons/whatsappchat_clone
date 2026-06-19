@@ -8,12 +8,14 @@ class MediaViewerScreen extends StatefulWidget {
   final ChatMessage message;
   final ChatPeer peer;
   final ChatTheme theme;
+  final ViewerTexts texts;
 
   const MediaViewerScreen({
     super.key,
     required this.message,
     required this.peer,
     required this.theme,
+    this.texts = const ViewerTexts(),
   });
 
   @override
@@ -104,6 +106,7 @@ class _MediaViewerScreenState extends State<MediaViewerScreen> {
             _TopBar(
               peer: widget.peer,
               theme: t,
+              timeText: widget.texts.time,
               onBack: () => Navigator.of(context).maybePop(),
               onDownload: _saveToGallery,
               onInfo: _showInfo,
@@ -122,13 +125,16 @@ class _MediaViewerScreenState extends State<MediaViewerScreen> {
                     child: AnimatedOpacity(
                       opacity: _showToast ? 1 : 0,
                       duration: const Duration(milliseconds: 250),
-                      child: const _SavedToast(),
+                      child: _SavedToast(text: widget.texts.savedToast),
                     ),
                   ),
                 ],
               ),
             ),
-            _BottomBar(onTap: () => Navigator.of(context).maybePop()),
+            _BottomBar(
+              text: widget.texts.reply,
+              onTap: () => Navigator.of(context).maybePop(),
+            ),
           ],
         ),
       ),
@@ -243,6 +249,7 @@ class _AudioContent extends StatelessWidget {
 class _TopBar extends StatelessWidget {
   final ChatPeer peer;
   final ChatTheme theme;
+  final String timeText;
   final VoidCallback onBack;
   final VoidCallback onDownload;
   final VoidCallback onInfo;
@@ -250,6 +257,7 @@ class _TopBar extends StatelessWidget {
   const _TopBar({
     required this.peer,
     required this.theme,
+    required this.timeText,
     required this.onBack,
     required this.onDownload,
     required this.onInfo,
@@ -299,7 +307,7 @@ class _TopBar extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'az önce',
+                    timeText,
                     style: TextStyle(
                         color: theme.mediaBarSubtitle, fontSize: 12.5),
                   ),
@@ -342,7 +350,8 @@ class _TopBar extends StatelessWidget {
 
 class _BottomBar extends StatelessWidget {
   final VoidCallback onTap;
-  const _BottomBar({required this.onTap});
+  final String text;
+  const _BottomBar({required this.onTap, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -350,17 +359,18 @@ class _BottomBar extends StatelessWidget {
       color: const Color(0xFF1F2C33),
       child: InkWell(
         onTap: onTap,
-        child: const Padding(
-          padding: EdgeInsets.symmetric(vertical: 14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
           child: Center(
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.reply, color: Color(0xFF8696A0), size: 20),
-                SizedBox(width: 8),
+                const Icon(Icons.reply, color: Color(0xFF8696A0), size: 20),
+                const SizedBox(width: 8),
                 Text(
-                  'Yanıtla',
-                  style: TextStyle(color: Color(0xFF8696A0), fontSize: 15),
+                  text,
+                  style: const TextStyle(
+                      color: Color(0xFF8696A0), fontSize: 15),
                 ),
               ],
             ),
@@ -372,7 +382,8 @@ class _BottomBar extends StatelessWidget {
 }
 
 class _SavedToast extends StatelessWidget {
-  const _SavedToast();
+  final String text;
+  const _SavedToast({required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -385,12 +396,12 @@ class _SavedToast extends StatelessWidget {
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.check_circle, color: Color(0xFF00A884), size: 18),
-          SizedBox(width: 8),
+        children: [
+          const Icon(Icons.check_circle, color: Color(0xFF00A884), size: 18),
+          const SizedBox(width: 8),
           Text(
-            'Galeriye kaydedildi',
-            style: TextStyle(color: Color(0xFF111111), fontSize: 14),
+            text,
+            style: const TextStyle(color: Color(0xFF111111), fontSize: 14),
           ),
         ],
       ),

@@ -14,6 +14,7 @@ class ChatStore extends ChangeNotifier {
   bool _dark = false;
   UiPlatform _platform = UiPlatform.ios;
   StatusBarConfig _statusBar = const StatusBarConfig();
+  ViewerTexts _viewerTexts = const ViewerTexts();
 
   // Zamanlanmış mesajlar (kalıcı). Aktif timer'lar ve "yazıyor..." geçici.
   List<ScheduledMessage> _scheduled = [];
@@ -25,6 +26,7 @@ class ChatStore extends ChangeNotifier {
   bool get isDark => _dark;
   UiPlatform get platform => _platform;
   StatusBarConfig get statusBar => _statusBar;
+  ViewerTexts get viewerTexts => _viewerTexts;
   List<ScheduledMessage> get scheduled => List.unmodifiable(_scheduled);
   bool get isTyping => _isTyping;
 
@@ -40,6 +42,8 @@ class ChatStore extends ChangeNotifier {
       _platform = UiPlatform.values[(map['platform'] as int?) ?? 0];
       _statusBar = _statusFromJson(
           map['statusBar'] as Map<String, dynamic>? ?? const {});
+      _viewerTexts = _viewerFromJson(
+          map['viewerTexts'] as Map<String, dynamic>? ?? const {});
       _peer = _peerFromJson(map['peer'] as Map<String, dynamic>);
       _messages = (map['messages'] as List)
           .map((e) => _msgFromJson(e as Map<String, dynamic>))
@@ -57,6 +61,7 @@ class ChatStore extends ChangeNotifier {
       'dark': _dark,
       'platform': _platform.index,
       'statusBar': _statusToJson(_statusBar),
+      'viewerTexts': _viewerToJson(_viewerTexts),
       'peer': _peerToJson(_peer),
       'messages': _messages.map(_msgToJson).toList(),
       // 'scheduled' kasıtlı olarak kaydedilmiyor (oturum içi, tek seferlik).
@@ -80,6 +85,12 @@ class ChatStore extends ChangeNotifier {
 
   void updateStatusBar(StatusBarConfig s) {
     _statusBar = s;
+    notifyListeners();
+    _persist();
+  }
+
+  void updateViewerTexts(ViewerTexts v) {
+    _viewerTexts = v;
     notifyListeners();
     _persist();
   }
@@ -194,6 +205,18 @@ class ChatStore extends ChangeNotifier {
         charging: m['charging'] as bool? ?? false,
         wifi: m['wifi'] as bool? ?? true,
         signal: m['signal'] as int? ?? 4,
+      );
+
+  Map<String, dynamic> _viewerToJson(ViewerTexts v) => {
+        'savedToast': v.savedToast,
+        'reply': v.reply,
+        'time': v.time,
+      };
+
+  ViewerTexts _viewerFromJson(Map<String, dynamic> m) => ViewerTexts(
+        savedToast: m['savedToast'] as String? ?? 'Galeriye kaydedildi',
+        reply: m['reply'] as String? ?? 'Yanıtla',
+        time: m['time'] as String? ?? 'az önce',
       );
 
   void updatePeer(ChatPeer p) {

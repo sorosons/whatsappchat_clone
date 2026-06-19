@@ -69,6 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
           message: message,
           peer: store.peer,
           theme: _t,
+          texts: store.viewerTexts,
         ),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
